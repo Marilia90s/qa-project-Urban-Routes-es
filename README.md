@@ -28,3 +28,8 @@ Este proyecto automatiza la prueba del flujo completo de solicitud de taxi en la
 1. Instalar dependencias:
 ```bash
 pip install pytest selenium
+```
+2. Ejecutar las pruebas:
+```
+pytest main.py
+```
