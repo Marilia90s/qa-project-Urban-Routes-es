@@ -7,7 +7,6 @@ import helpers
 
 
 class UrbanRoutesPage:
-
     # 1. Rutas
     FROM_FIELD = (By.ID, "from")
     TO_FIELD = (By.ID, "to")
@@ -26,10 +25,14 @@ class UrbanRoutesPage:
         "//div[contains(text(), 'Comfort')]"
     )
 
+    COMFORT_TARIFF_CARD = (
+        By.XPATH,
+        "//div[contains(@class, 'tariff-card') or contains(@class, 'tariff-card')][.//div[contains(text(), 'Comfort')]]"
+    )
+
     ACTIVE_TARIFF = (
         By.XPATH,
-        "//div[contains(@class, 'tariff-card') and "
-        "contains(@class, 'active')]"
+        "//div[(contains(@class, 'tariff-card') or contains(@class, 'tariff-card')) and contains(@class, 'active')]"
     )
 
     # 3. Teléfono
@@ -134,39 +137,50 @@ class UrbanRoutesPage:
     # ---------------------------------------------------------
 
     def set_route(self, address_from, address_to):
-
         from_field = self.wait.until(
             EC.element_to_be_clickable(self.FROM_FIELD)
         )
-
         from_field.send_keys(address_from)
 
         to_field = self.wait.until(
             EC.element_to_be_clickable(self.TO_FIELD)
         )
-
         to_field.send_keys(address_to)
 
         self.wait.until(
             EC.element_to_be_clickable(self.CALL_TAXI_BUTTON)
         ).click()
 
+    def get_from(self):
+        return self.wait.until(
+            EC.presence_of_element_located(self.FROM_FIELD)
+        ).get_attribute("value")
+
+    def get_to(self):
+        return self.wait.until(
+            EC.presence_of_element_located(self.TO_FIELD)
+        ).get_attribute("value")
+
     # ---------------------------------------------------------
     # TARIFA
     # ---------------------------------------------------------
+
     def select_comfort_tariff(self):
-        comfort = self.wait.until(
+        comfort_card = self.wait.until(
+            EC.presence_of_element_located(self.COMFORT_TARIFF_CARD)
+        )
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", comfort_card)
+
+        comfort_text = self.wait.until(
             EC.element_to_be_clickable(self.COMFORT_TARIFF)
         )
-
-        comfort.click()
+        comfort_text.click()
 
     def get_active_tariff_name(self):
         element = self.wait.until(
-            EC.presence_of_element_located(self.ACTIVE_TARIFF)
+            EC.presence_of_element_located(self.COMFORT_TARIFF)
         )
-
-        return element.text
+        return element.text.strip()
 
     # ---------------------------------------------------------
     # TELÉFONO
@@ -180,7 +194,6 @@ class UrbanRoutesPage:
         phone_input = self.wait.until(
             EC.element_to_be_clickable(self.PHONE_INPUT)
         )
-
         phone_input.send_keys(phone_number)
 
         self.wait.until(
@@ -218,14 +231,12 @@ class UrbanRoutesPage:
         card_input = self.wait.until(
             EC.element_to_be_clickable(self.CARD_NUMBER_INPUT)
         )
-
         card_input.send_keys(card_number)
         card_input.send_keys(Keys.TAB)
 
         code_input = self.wait.until(
             EC.presence_of_element_located(self.CARD_CODE_INPUT)
         )
-
         code_input.send_keys(card_code)
         code_input.send_keys(Keys.TAB)
 
@@ -259,20 +270,21 @@ class UrbanRoutesPage:
         return self.wait.until(
             EC.presence_of_element_located(self.COMMENT_FIELD)
         ).get_attribute("value")
-# ---------------------------------------------------------
+
+    # ---------------------------------------------------------
     # MANTA Y PAÑUELOS
     # ---------------------------------------------------------
 
     def order_blanket_and_tissues(self):
-
-        self.wait.until(
-            EC.element_to_be_clickable(self.BLANKET_SWITCH)
-        ).click()
+        switch = self.wait.until(
+            EC.presence_of_element_located(self.BLANKET_SWITCH)
+        )
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", switch)
+        self.driver.execute_script("arguments[0].click();", switch)
 
     def is_blanket_selected(self):
-
-        return self.driver.find_element(
-            *self.BLANKET_CHECKBOX
+        return self.wait.until(
+            EC.presence_of_element_located(self.BLANKET_CHECKBOX)
         ).is_selected()
 
     # ---------------------------------------------------------
@@ -280,16 +292,17 @@ class UrbanRoutesPage:
     # ---------------------------------------------------------
 
     def order_ice_cream(self, count):
-
         plus = self.wait.until(
-            EC.element_to_be_clickable(self.ICE_CREAM_PLUS_BUTTON)
+            EC.presence_of_element_located(self.ICE_CREAM_PLUS_BUTTON)
         )
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", plus)
 
         for _ in range(count):
-            plus.click()
+            self.wait.until(
+                EC.element_to_be_clickable(self.ICE_CREAM_PLUS_BUTTON)
+            ).click()
 
     def get_ice_cream_count(self):
-
         return int(
             self.wait.until(
                 EC.presence_of_element_located(
@@ -303,13 +316,16 @@ class UrbanRoutesPage:
     # ---------------------------------------------------------
 
     def click_order_button(self):
-
-        self.wait.until(
+        order = self.wait.until(
             EC.element_to_be_clickable(self.ORDER_BUTTON)
-        ).click()
+        )
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", order)
+        order.click()
+
+    def click_smart_button(self):
+        self.click_order_button()
 
     def is_taxi_search_modal_displayed(self):
-
         return self.wait.until(
             EC.visibility_of_element_located(
                 self.TAXI_SEARCH_MODAL
