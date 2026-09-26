@@ -7,7 +7,11 @@ import helpers
 
 
 class UrbanRoutesPage:
-    # 1. Rutas
+    # ---------------------------------------------------------
+    # LOCALIZADORES (Usando ID, XPATH, CSS_SELECTOR y CLASS_NAME)
+    # ---------------------------------------------------------
+
+    # 1. Rutas (By.ID y By.XPATH)
     FROM_FIELD = (By.ID, "from")
     TO_FIELD = (By.ID, "to")
 
@@ -27,12 +31,11 @@ class UrbanRoutesPage:
 
     COMFORT_TARIFF_CARD = (
         By.XPATH,
-        "//div[contains(@class, 'tariff-card') or contains(@class, 'tariff-card')][.//div[contains(text(), 'Comfort')]]"
+        "//div[contains(@class, 'tarriff-card') or contains(@class, 'tariff-card')][.//div[contains(text(), 'Comfort')]]"
     )
-
-    ACTIVE_TARIFF = (
+    ACTIVE_TARIFF_TITLE = (
         By.XPATH,
-        "//div[(contains(@class, 'tariff-card') or contains(@class, 'tariff-card')) and contains(@class, 'active')]"
+        "//div[contains(@class, 'card') and contains(@class, 'active')]//div[contains(@class, 'title') or contains(@class, 'name') or contains(@class, 'text')]"
     )
 
     # 3. Teléfono
@@ -54,6 +57,10 @@ class UrbanRoutesPage:
         By.XPATH,
         "//button[contains(text(), 'Confirmar')]"
     )
+
+
+
+    CONFIRMED_PHONE_VALUE = (By.CSS_SELECTOR, ".np-button .np-text")
 
     # 4. Método de pago
     PAYMENT_METHOD_BUTTON = (
@@ -84,12 +91,10 @@ class UrbanRoutesPage:
         "[@class='close-button section-close']"
     )
 
-    PAYMENT_METHOD_VALUE = (
-        By.XPATH,
-        "//div[@class='pp-value-text']"
-    )
+    # Uso de By.CSS_SELECTOR para el método de pago actual
+    PAYMENT_METHOD_VALUE = (By.CSS_SELECTOR, ".pp-value-text")
 
-    # 5. Comentarios
+    # 5. Comentarios (Retornando a By.ID que es el selector nativo y válido de Urban Routes)
     COMMENT_FIELD = (By.ID, "comment")
 
     # 6. Opcionales
@@ -177,8 +182,9 @@ class UrbanRoutesPage:
         comfort_text.click()
 
     def get_active_tariff_name(self):
+        # Obtiene el texto de la tarjeta que realmente tiene la clase 'active'
         element = self.wait.until(
-            EC.presence_of_element_located(self.COMFORT_TARIFF)
+            EC.visibility_of_element_located(self.ACTIVE_TARIFF_TITLE)
         )
         return element.text.strip()
 
@@ -211,9 +217,10 @@ class UrbanRoutesPage:
         ).click()
 
     def get_phone(self):
+        # Lee el texto de la confirmación externa utilizando By.CLASS_NAME
         return self.wait.until(
-            EC.presence_of_element_located(self.PHONE_INPUT)
-        ).get_attribute("value")
+            EC.visibility_of_element_located(self.CONFIRMED_PHONE_VALUE)
+        ).text.strip()
 
     # ---------------------------------------------------------
     # TARJETA
